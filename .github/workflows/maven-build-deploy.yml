@@ -2,6 +2,7 @@ name: 'Maven Build and Deploy to Maven Repository'
 
 description: 'Builds a Maven project and deploys to Maven private repository'
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       java-version:
