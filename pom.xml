@@ -21,13 +21,6 @@
     <developers>
         <developer/>
     </developers>
-    <modules>
-        <module>quantum-common</module>
-        <module>quantum-gateway</module>
-        <module>quantum-web</module>
-        <module>quantum-lib</module>
-        <module>quantum-plugin</module>
-    </modules>
 
     <!-- 配置发布仓库 -->
     <distributionManagement>
