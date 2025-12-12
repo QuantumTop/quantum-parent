@@ -28,6 +28,16 @@
         <module>quantum-lib</module>
         <module>quantum-plugin</module>
     </modules>
+
+    <!-- 配置发布仓库 -->
+    <distributionManagement>
+        <repository>
+            <!-- 须与 settings.xml 中 server 的 id 一致 -->
+            <id>lunarstra-quantum</id>
+            <name>lunarstra-quantum</name>
+            <url>https://maven.cnb.cool/lunarstra/Quantum/-/packages/</url>
+        </repository>
+    </distributionManagement>
     <scm>
         <connection/>
         <developerConnection/>
