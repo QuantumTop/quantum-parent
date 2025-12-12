@@ -150,6 +150,7 @@ jobs:
         id: get-version
         working-directory: ${{ inputs.working-directory }}
         run: |
+          ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout
           if [ -f "pom.xml" ]; then
             VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
             echo "version=$VERSION" >> $GITHUB_OUTPUT
