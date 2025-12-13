@@ -113,6 +113,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: QuantumTop/quantum-parent   # 👈 显式指定
+          ref: ${{ github.ref }}
 
       - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
