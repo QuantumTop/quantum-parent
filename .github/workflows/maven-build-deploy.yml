@@ -173,7 +173,6 @@ jobs:
         id: get-version
         working-directory: ${{ inputs.working-directory }}
         run: |
-          ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout
           if [ -f "pom.xml" ]; then
             if [ -f "./mvnw" ]; then
               VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
