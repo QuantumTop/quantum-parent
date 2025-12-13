@@ -189,9 +189,9 @@ jobs:
         run: |
           if [ -f "pom.xml" ]; then
             if [ -f "./mvnw" ]; then
-              VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+              VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout -N)
             else
-              VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+              VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -N)
             fi
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "✅ Project version: $VERSION"
