@@ -1,4 +1,4 @@
-name: 'Maven Build and Deploy'
+name: 'Maven Build and Deploy - Parent'
 
 on:
   workflow_dispatch:
@@ -48,6 +48,11 @@ on:
         required: false
         default: 'lunarstra-quantum'
         type: string
+      built-modules:
+        description: 'Comma-separated list of already built modules'
+        required: false
+        default: ''
+        type: string
   workflow_call:
     inputs:
       java-version:
@@ -96,9 +101,14 @@ on:
         default: 'cnb'
         type: string
       repository-path:
-        description: 'Maven repository username'
+        description: 'Maven repository path'
         required: false
         default: 'QuantumTop/quantum-parent'
+        type: string
+      built-modules:
+        description: 'Comma-separated list of already built modules'
+        required: false
+        default: ''
         type: string
     secrets:
       MAVEN_TOKEN:
@@ -108,21 +118,45 @@ on:
       artifact-version:
         description: 'Version of the deployed artifact'
         value: ${{ jobs.build-deploy.outputs.version }}
+      built-modules:
+        description: 'Updated list of built modules'
+        value: ${{ jobs.build-deploy.outputs.built-modules }}
+      skipped:
+        description: 'Whether this module was skipped'
+        value: ${{ jobs.build-deploy.outputs.skipped }}
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get-version.outputs.version }}
+      built-modules: ${{ steps.update-built-modules.outputs.built-modules }}
+      skipped: ${{ steps.check-if-built.outputs.skipped }}
 
     steps:
+      - name: Check if module already built
+        id: check-if-built
+        run: |
+          MODULE_NAME="quantum-parent"
+          BUILT_MODULES="${{ inputs.built-modules }}"
+          
+          if [[ ",$BUILT_MODULES," == *",$MODULE_NAME,"* ]]; then
+            echo "⏭️  Module '$MODULE_NAME' already built, skipping..."
+            echo "skipped=true" >> $GITHUB_OUTPUT
+          else
+            echo "🔨 Module '$MODULE_NAME' needs to be built"
+            echo "skipped=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout code
+        if: steps.check-if-built.outputs.skipped == 'false'
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.repository-path }}   # 👈 显式指定
+          repository: ${{ inputs.repository-path }}
           ref: ${{ github.ref }}
 
       - name: Set up JDK ${{ inputs.java-version }}
+        if: steps.check-if-built.outputs.skipped == 'false'
         uses: actions/setup-java@v4
         with:
           java-version: ${{ inputs.java-version }}
@@ -130,6 +164,7 @@ jobs:
           cache: 'maven'
 
       - name: Configure Maven settings
+        if: steps.check-if-built.outputs.skipped == 'false'
         uses: whelk-io/maven-settings-xml-action@v22
         with:
           servers: |
@@ -180,6 +215,7 @@ jobs:
             ]
 
       - name: Make mvnw executable
+        if: steps.check-if-built.outputs.skipped == 'false'
         working-directory: ${{ inputs.working-directory }}
         run: |
           if [ -f "./mvnw" ]; then
@@ -189,6 +225,7 @@ jobs:
           fi
 
       - name: Get project version
+        if: steps.check-if-built.outputs.skipped == 'false'
         id: get-version
         working-directory: ${{ inputs.working-directory }}
         run: |
@@ -206,6 +243,7 @@ jobs:
           fi
 
       - name: Build and deploy to Maven repository
+        if: steps.check-if-built.outputs.skipped == 'false'
         working-directory: ${{ inputs.working-directory }}
         run: |
           MVN_CMD="./mvnw"
@@ -226,8 +264,29 @@ jobs:
           echo "🚀 Executing: $MVN_CMD $MVN_ARGS"
           $MVN_CMD $MVN_ARGS
 
+      - name: Update built modules list
+        id: update-built-modules
+        run: |
+          MODULE_NAME="quantum-parent"
+          BUILT_MODULES="${{ inputs.built-modules }}"
+          
+          if [ "${{ steps.check-if-built.outputs.skipped }}" == "false" ]; then
+            # Add current module to the list
+            if [ -z "$BUILT_MODULES" ]; then
+              NEW_BUILT_MODULES="$MODULE_NAME"
+            else
+              NEW_BUILT_MODULES="$BUILT_MODULES,$MODULE_NAME"
+            fi
+          else
+            # Keep the list as is
+            NEW_BUILT_MODULES="$BUILT_MODULES"
+          fi
+          
+          echo "built-modules=$NEW_BUILT_MODULES" >> $GITHUB_OUTPUT
+          echo "📦 Built modules: $NEW_BUILT_MODULES"
+
       - name: Summary
-        if: success()
+        if: success() && steps.check-if-built.outputs.skipped == 'false'
         run: |
           echo "## ✅ Deployment Successful :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -241,6 +300,13 @@ jobs:
           echo "| **Distribution** | ${{ inputs.distribution }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Tests Skipped** | ${{ inputs.skip-tests }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Working Directory** | ${{ inputs.working-directory }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Skip Summary
+        if: success() && steps.check-if-built.outputs.skipped == 'true'
+        run: |
+          echo "## ⏭️  Build Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**quantum-parent** was already built in this workflow run." >> $GITHUB_STEP_SUMMARY
 
       - name: Failure Summary
         if: failure()
