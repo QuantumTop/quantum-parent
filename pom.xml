@@ -22,6 +22,18 @@
         <developer/>
     </developers>
 
+    <repositories>
+        <repository>
+            <!-- 须与 server 的 id 一致 -->
+            <id>lunarstra-quantum</id>
+            <url>https://maven.cnb.cool/lunarstra/Quantum/-/packages/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+    
     <!-- 配置发布仓库 -->
     <distributionManagement>
         <repository>
