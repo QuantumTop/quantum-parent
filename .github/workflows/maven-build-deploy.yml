@@ -117,16 +117,16 @@ on:
     outputs:
       artifact-version:
         description: 'Version of the deployed artifact'
-        value: ${{ jobs.build-deploy.outputs.version }}
+        value: ${{ jobs.quantum-parent-deploy.outputs.version }}
       built-modules:
         description: 'Updated list of built modules'
-        value: ${{ jobs.build-deploy.outputs.built-modules }}
+        value: ${{ jobs.quantum-parent-deploy.outputs.built-modules }}
       skipped:
         description: 'Whether this module was skipped'
-        value: ${{ jobs.build-deploy.outputs.skipped }}
+        value: ${{ jobs.quantum-parent-deploy.outputs.skipped }}
 
 jobs:
-  build-deploy:
+  quantum-parent-deploy:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get-version.outputs.version }}
