@@ -100,7 +100,7 @@ on:
         required: false
         default: 'cnb'
         type: string
-      repository-path:
+      repository-module:
         description: 'Maven repository path'
         required: false
         default: 'QuantumTop/quantum-parent'
@@ -152,7 +152,7 @@ jobs:
         if: steps.check-if-built.outputs.skipped == 'false'
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.repository-path }}
+          repository: ${{ inputs.repository-module }}
           ref: ${{ github.ref }}
 
       - name: Set up JDK ${{ inputs.java-version }}
